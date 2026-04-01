@@ -1,5 +1,23 @@
 import { feature } from 'bun:bundle';
 
+// Force TTY if FORCE_INTERACTIVE is set (workaround for terminals that don't report isTTY)
+// eslint-disable-next-line custom-rules/no-top-level-side-effects
+if (process.env.FORCE_INTERACTIVE === '1') {
+  if (!process.stdin.isTTY) {
+    Object.defineProperty(process.stdin, 'isTTY', { value: true });
+  }
+  if (!process.stdout.isTTY) {
+    Object.defineProperty(process.stdout, 'isTTY', { value: true });
+  }
+  if (!process.stderr.isTTY) {
+    Object.defineProperty(process.stderr, 'isTTY', { value: true });
+  }
+  // Ink requires setRawMode on stdin to capture keystrokes
+  if (typeof process.stdin.setRawMode !== 'function') {
+    process.stdin.setRawMode = () => process.stdin;
+  }
+}
+
 // Bugfix for corepack auto-pinning, which adds yarnpkg to peoples' package.jsons
 // eslint-disable-next-line custom-rules/no-top-level-side-effects
 process.env.COREPACK_ENABLE_AUTO_PIN = '0';
